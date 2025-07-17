@@ -1,5 +1,5 @@
 import got from 'got'
-import { SendInput, SendManuallyInput, SendAutomaticInput, VerifyRequest, StatusRequest, StatusResponse, MessageError, SendRequest, SendResponse, MessengerProvider } from './types'
+import { SendInput, SendManuallyInput, SendAutomaticInput, VerifyRequest, StatusRequest, StatusResponse, MessageError, SendRequest, SendResponse, MessengerProvider, BalanceResponse } from './types'
 export { SendInput, SendManuallyInput as SendManuallyInput, SendAutomaticInput, VerifyRequest, StatusRequest, StatusResponse, MessageError as OTPError }
 export { MessageMethod as OTPMethod, MessageStatus as OTPStatus } from './types'
 
@@ -25,13 +25,14 @@ export class MessageWay<IsManual extends boolean = false> {
     private readonly apiKey: string,
     manual: IsManual = false as IsManual,
     private readonly language = 'fa-IR') {
-      this.sendSMS = this.sendSMS.bind(this)
-      this.sendIVR = this.sendIVR.bind(this)
-      this.sendGapMessage = this.sendGapMessage.bind(this)
-      this.verify = this.verify.bind(this)
-      this.getStatus = this.getStatus.bind(this)
+    this.sendSMS = this.sendSMS.bind(this)
+    this.sendIVR = this.sendIVR.bind(this)
+    this.sendGapMessage = this.sendGapMessage.bind(this)
+    this.verify = this.verify.bind(this)
+    this.getStatus = this.getStatus.bind(this)
+    this.getBalance = this.getBalance.bind(this)
   }
-  
+
   private request<T>(path: string, body: object): Promise<T> {
     let language = this.language
 
@@ -66,7 +67,7 @@ export class MessageWay<IsManual extends boolean = false> {
       })
       .catch((error: any) => {
         if (error.response) {
-          try { error = JSON.parse(error.response.body) } catch (error) {}
+          try { error = JSON.parse(error.response.body) } catch (error) { }
         }
         if (error.status === 'error' && isMessageWayError(error.error)) {
           return Promise.reject(error.error)
@@ -122,7 +123,7 @@ export class MessageWay<IsManual extends boolean = false> {
    */
   verify(options: VerifyRequest): Promise<void> {
     return this.request<void>('/otp/verify', options)
-      .then(() => {})
+      .then(() => { })
   }
 
   /**
@@ -131,5 +132,15 @@ export class MessageWay<IsManual extends boolean = false> {
    */
   getStatus(options: StatusRequest): Promise<StatusResponse> {
     return this.request<StatusResponse>('/status', options)
+  }
+
+  /**
+   * Get account balance.
+   * @returns A promise that resolves to the account balance as a number.
+   * @author amirmm4d
+   */
+  getBalance(): Promise<number> {
+    return this.request<BalanceResponse>('/balance/get', {})
+      .then(result => result.balance)
   }
 }
