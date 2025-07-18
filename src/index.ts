@@ -139,8 +139,7 @@ export class MessageWay<IsManual extends boolean = false> {
    * @returns A promise that resolves to the account balance as a number.
    * @author amirmm4d
    */
-  getBalance(): Promise<number> {
+  getBalance(): Promise<BalanceResponse> {
     return this.request<BalanceResponse>('/balance/get', {})
-      .then(result => result.balance)
   }
 }
