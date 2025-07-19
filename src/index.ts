@@ -25,12 +25,12 @@ export class MessageWay<IsManual extends boolean = false> {
     private readonly apiKey: string,
     manual: IsManual = false as IsManual,
     private readonly language = 'fa-IR') {
-    this.sendSMS = this.sendSMS.bind(this)
-    this.sendIVR = this.sendIVR.bind(this)
-    this.sendGapMessage = this.sendGapMessage.bind(this)
-    this.verify = this.verify.bind(this)
-    this.getStatus = this.getStatus.bind(this)
-    this.getBalance = this.getBalance.bind(this)
+      this.sendSMS = this.sendSMS.bind(this)
+      this.sendIVR = this.sendIVR.bind(this)
+      this.sendGapMessage = this.sendGapMessage.bind(this)
+      this.verify = this.verify.bind(this)
+      this.getStatus = this.getStatus.bind(this)
+      this.getBalance = this.getBalance.bind(this)
   }
 
   private request<T>(path: string, body: object): Promise<T> {
