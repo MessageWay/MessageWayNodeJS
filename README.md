@@ -92,3 +92,18 @@ async function getStatus() {
 
 getStatus()
 ```
+
+## Get Balance
+
+```js
+const { MessageWay } = require('messageway')
+const message = new MessageWay(API_KEY)
+
+message.getBalance()
+  .then(balanceInfo => {
+    console.log('Balance info:', balanceInfo)
+  })
+  .catch(error => {
+    console.error('Error while fetching balance:', error)
+  })
+```
