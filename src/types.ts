@@ -1,4 +1,3 @@
-
 interface RequestOptions {
   language?: string
 }
@@ -51,7 +50,7 @@ export interface SendAutomaticInput extends SendInputCommon {
 export type SendInput<IsManual extends boolean> = IsManual extends true ? SendManuallyInput : SendAutomaticInput
 
 /** @ignore */
- export interface SendRequest {
+export interface SendRequest {
   code: string
   countryCode?: number
   expireTime?: number
@@ -78,7 +77,7 @@ export interface VerifyRequest {
 }
 
 export interface StatusRequest {
-  OTPReferenceID:	string
+  OTPReferenceID: string
 }
 
 export interface StatusResponse {
@@ -88,4 +87,8 @@ export interface StatusResponse {
   MessageStatus: MessageStatus
   /** Is OTP verified */
   OTPVerified: boolean
+}
+
+export interface BalanceResponse {
+  balance: number
 }
