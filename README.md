@@ -3,6 +3,8 @@
 
 A NodeJS SDK for the MessageWay API.
 
+Requires Node.js 18 or later (uses native `fetch`).
+
 ## Documents
 [Full documentation is here.](https://messageway.github.io/MessageWayNodeJS)
 

@@ -1,4 +1,3 @@
-import got from 'got'
 import { SendInput, SendManuallyInput, SendAutomaticInput, VerifyRequest, StatusRequest, StatusResponse, MessageError, SendRequest, SendResponse, MessengerProvider, BalanceResponse } from './types'
 export { SendInput, SendManuallyInput as SendManuallyInput, SendAutomaticInput, VerifyRequest, StatusRequest, StatusResponse, MessageError as OTPError }
 export { MessageMethod as OTPMethod, MessageStatus as OTPStatus } from './types'
@@ -41,24 +40,27 @@ export class MessageWay<IsManual extends boolean = false> {
       delete (body as any).language
     }
 
-    return got(MESSAGE_WAY_HOST + path, {
+    return fetch(MESSAGE_WAY_HOST + path, {
       headers: {
         'accept-language': language,
         'content-type': 'application/json',
         apiKey: this.apiKey
       },
       method: 'post',
-      responseType: 'text',
       body: JSON.stringify(body),
     })
-      .then(response => {
+      .then(async response => {
+        const responseBody = await response.text()
         let result: { status?: any, error?: any }
         try {
-          result = JSON.parse(response.body)
+          result = JSON.parse(responseBody)
         } catch (err) {
+          if (!response.ok) {
+            throw new Error(`Request failed with status code ${response.status} (${response.statusText})`)
+          }
           return Promise.reject(err)
         }
-        if (result.error) {
+        if (!response.ok || result.error) {
           return Promise.reject(result)
         }
         delete result.status
@@ -66,9 +68,6 @@ export class MessageWay<IsManual extends boolean = false> {
         return result as T
       })
       .catch((error: any) => {
-        if (error.response) {
-          try { error = JSON.parse(error.response.body) } catch (error) { }
-        }
         if (error.status === 'error' && isMessageWayError(error.error)) {
           return Promise.reject(error.error)
         }

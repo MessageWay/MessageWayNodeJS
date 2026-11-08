@@ -7,6 +7,6 @@
     "module": "CommonJS",
     "outDir": "dist",
     "declaration": true,
-    "lib": ["ES6"]
+    "lib": ["ES6", "DOM"]
   }
 }
