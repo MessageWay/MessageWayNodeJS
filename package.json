@@ -43,7 +43,8 @@
       },
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "build": "vp pack",
@@ -59,9 +60,7 @@
     "prepack": "vp pack"
   },
   "devDependencies": {
-    "@types/node": "^22.20.5",
-    "dotenv": "^10.0.0",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "vite-plus": "^1.5.0"
   },
   "engines": {
