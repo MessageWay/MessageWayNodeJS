@@ -1,111 +1,447 @@
-![messageWay](logo.png)
-# MessageWay NodeJS SDK
+<div dir="rtl">
 
-A NodeJS SDK for the MessageWay API.
+<p align="center">
+  <img src="logo.png" alt="MessageWay Logo" width="180" />
+</p>
 
-Requires Node.js 18 or later (uses native `fetch`).
+# کتابخانه نودجی‌اس راه‌پیام (MessageWay NodeJS SDK)
 
-## Documents
-[Full documentation is here.](https://messageway.github.io/MessageWayNodeJS)
+[![npm version](https://img.shields.io/npm/v/messageway.svg)](https://www.npmjs.com/package/messageway)
+[![Node.js version](https://img.shields.io/node/v/messageway.svg)](https://nodejs.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Built with Vite+](https://img.shields.io/badge/Built%20with-Vite%2B-purple.svg)](https://viteplus.dev)
 
-## Install
+کتابخانه رسمی و مدرن Node.js برای اتصال به سرویس پیام‌رسانی و ارسال کدهای یکبارمصرف (OTP) در سامانه [راه‌پیام (MessageWay)](https://msgway.com).
+
+### ویژگی‌های کلیدی
+
+- **بدون هیچ وابستگی جانبی (Zero-dependency):** استفاده مستقیم از `fetch` بومی نودجی‌اس (نسخه ۱۸ به بالا).
+- **پشتیبانی دوگانه از ماژول‌ها:** قابل استفاده هم در پروژه‌های مدرن **ESM** (`import`) و هم در پروژه‌های **CommonJS** (`require`).
+- **پشتیبانی کامل از TypeScript:** دارای تایپ‌های دقیق برای همه درخواست‌ها، پاسخ‌ها، وضعیت‌ها و ارائه‌دهندگان سرویس.
+- **پشتیبانی از تمام مسیرهای ارسال:** پیامک (SMS)، تماس صوتی (IVR)، ارسال هوشمند (Smart) و پیام‌رسان‌های بومی (گپ، ایتا، بله، روبیکا و آی‌گپ).
+- **مدیریت ساختاریافته خطاها:** تفکیک خودکار خطاهای سمت وب‌سرویس از خطاهای شبکه به کمک تابع `isMessageWayError`.
+- **ابزار توسعه پرسرعت:** توسعه داده شده و بهینه‌شده تحت ابزار مدرن **Vite+**.
+
+---
+
+## فهرست مطالب
+
+- [پیش‌نیازها](#پیش‌نیازها)
+- [نصب](#نصب)
+- [شروع سریع](#شروع-سریع)
+- [راه‌اندازی کلاینت و تنظیمات](#راه‌اندازی-کلاینت-و-تنظیمات)
+  - [حالت کد خودکار در برابر کد دستی](#حالت-کد-خودکار-در-برابر-کد-دستی)
+- [راهنمای متدها و کاربردها](#راهنمای-متدها-و-کاربردها)
+  - [۱. ارسال پیامک (SMS)](#۱-ارسال-پیامک-sms)
+  - [۲. ارسال از طریق پیام‌رسان‌ها](#۲-ارسال-از-طریق-پیام‌رسان‌ها)
+  - [۳. ارسال با تماس صوتی (IVR)](#۳-ارسال-با-تماس-صوتی-ivr)
+  - [۴. ارسال هوشمند (Smart)](#۴-ارسال-هوشمند-smart)
+  - [۵. متد عمومی ارسال (`send`)](#۵-متد-عمومی-ارسال-send)
+  - [۶. بررسی وضعیت پیام (`getStatus`)](#۶-بررسی-وضعیت-پیام-getstatus)
+  - [۷. اعتبارسنجی کد یکبارمصرف (`verify`)](#۷-اعتبارسنجی-کد-یکبارمصرف-verify)
+  - [۸. مشاهده متن قالب (`getTemplate`)](#۸-مشاهده-متن-قالب-gettemplate)
+  - [۹. استعلام موجودی حساب (`getBalance`)](#۹-استعلام-موجودی-حساب-getbalance)
+- [جدول خلاصه متدهای SDK](#جدول-خلاصه-متدهای-sdk)
+- [ثوابت و ارائه‌دهندگان (Enums)](#ثوابت-و-ارائه‌دهندگان-enums)
+- [مدیریت خطاها](#مدیریت-خطاها)
+- [دستورات توسعه](#دستورات-توسعه)
+- [مجوز](#مجوز)
+
+---
+
+## پیش‌نیازها
+
+- **Node.js نسخه ۱۸ یا بالاتر** (به دلیل استفاده از `fetch` استاندارد داخلی).
+
+---
+
+## نصب
+
+با استفاده از پکیج‌منیجر مورد نظر خود، کتابخانه را نصب کنید:
+
 ```bash
-npm i messageway
+# با npm
+npm install messageway
 ```
 
-## Send Message Via **WhatsApp Messenger**
-```js
-const { MessageWay } = require('messageway')
-const message = new MessageWay(API_KEY)
+---
 
-message.sendWhatsAppMessage({
-  mobile: '09333333333',
-  templateID: 12,
-  params: ['Foo'],
-  length: 4,
-})
-.then(referenceID => {
-  console.log(referenceID)
-})
-.catch(error => {
-  console.error(error)
-})
-```
+## شروع سریع
 
-## Send Message Via **SMS**
-```js
-const { MessageWay } = require('messageway')
-const message = new MessageWay(API_KEY)
+### استفاده در TypeScript / ES Modules
 
-message.sendSMS({
-  mobile: '09333333333',
-  templateID: 12,
-  params: ['Foo'],
-  length: 4,
-  expireTime: 120,
-})
-.then(referenceID => {
-  console.log(referenceID)
-})
-.catch(error => {
-  console.error(error)
-})
-```
+```typescript
+import { MessageWay, SMSProvider } from 'messageway'
 
-## Verify OTP Code
-```js
-const { MessageWay, isMessageWayError } = require('messageway')
-const otp = new MessageWay(API_KEY)
+// ساخت نمونه با کلید دسترسی (API Key)
+const client = new MessageWay('YOUR_API_KEY')
 
-otp.verify({
-  mobile: '09333333333',
-  otp: '3305',
-})
-.then(() => {
-  console.log('Code is correct!')
-})
-.catch(error => {
-  // handle Error
-  if (isMessageWayError(error)) {
-    console.log(`Error ${error.code}: ${error.message}`)
-  } else {
-    // unknown error
-    console.error(error)
-  }
-})
-```
-
-## Use async functions
-```js
-async function getStatus() {
+async function sendOtp() {
   try {
-    const result = await otp.getStatus({ OTPReferenceID: '1628960593121007556' })
-    console.log('Method: ' + result.OTPMethod)
-    console.log('Status: ' + result.OTPStatus)
-    console.log('Verified: ' + result.OTPVerified)
+    const referenceID = await client.sendSMS({
+      mobile: '09120000000',
+      templateID: 10,
+      params: ['1234'],
+      provider: SMSProvider.Magfa,
+      expireTime: 120, // اعتبار ۲ دقیقه
+    })
+
+    console.log('پیام با موفقیت ارسال شد. شناسه رهگیری:', referenceID)
   } catch (error) {
-    if (isMessageWayError(error)) {
-      console.log(`Error ${error.code}: ${error.message}`)
-    } else {
-      console.error(error)
-    }
+    console.error('خطا در ارسال:', error)
   }
 }
 
-getStatus()
+sendOtp()
 ```
 
-## Get Balance
+### استفاده در CommonJS (روش سنتی نودجی‌اس)
 
-```js
-const { MessageWay } = require('messageway')
-const message = new MessageWay(API_KEY)
+```javascript
+const { MessageWay, MessengerProvider, isMessageWayError } = require('messageway')
 
-message.getBalance()
-  .then(balanceInfo => {
-    console.log('Balance info:', balanceInfo)
+const client = new MessageWay('YOUR_API_KEY')
+
+client
+  .sendMessenger({
+    mobile: '09120000000',
+    templateID: 12,
+    provider: MessengerProvider.Gap,
+    params: ['کد ورود'],
   })
-  .catch(error => {
-    console.error('Error while fetching balance:', error)
+  .then((referenceID) => {
+    console.log('ارسال شد. شناسه پیگیری:', referenceID)
+  })
+  .catch((err) => {
+    if (isMessageWayError(err)) {
+      console.error(`خطای وب‌سرویس راه‌پیام [${err.code}]: ${err.message}`)
+    } else {
+      console.error('خطای غیرمنتظره:', err)
+    }
   })
 ```
+
+---
+
+## راه‌اندازی کلاینت و تنظیمات
+
+کلاس اصلی `MessageWay` هنگام ساخت ۳ ورودی می‌پذیرد:
+
+```typescript
+const client = new MessageWay(apiKey, manual, language)
+```
+
+| پارامتر    | نوع              | پیش‌فرض     | توضیحات                                                                   |
+| :--------- | :--------------- | :--------- | :------------------------------------------------------------------------ |
+| `apiKey`   | `string`         | _(اجباری)_ | کلید دسترسی دریافت شده از پنل راه‌پیام ([msgway.com](https://msgway.com)). |
+| `manual`   | `boolean`        | `false`    | آیا کد OTP را خودتان می‌سازید یا سامانه راه‌پیام بسازد؟                     |
+| `language` | `'fa'` \| `'en'` | `'fa'`     | زبان پیام‌های خطای وب‌سرویس (فارسی یا انگلیسی).                             |
+
+---
+
+### حالت کد خودکار در برابر کد دستی
+
+سامانه راه‌پیام از دو الگو برای کدهای ورود پشتیبانی می‌کند:
+
+#### ۱. حالت خودکار (`manual: false` - پیش‌فرض)
+
+در این حالت، سامانه راه‌پیام کد تصادفی را می‌سازد و برای کاربر می‌فرستد. شما فقط طول کد را با `length` تعیین می‌کنید و بعداً از طریق متد `verify` صحت کد وارد شده توسط کاربر را استعلام می‌کنید.
+
+```typescript
+const client = new MessageWay(API_KEY, false)
+
+const ref = await client.sendSMS({
+  mobile: '09120000000',
+  templateID: 10,
+  length: 5, // طول کد ۵ رقم باشد
+})
+```
+
+#### ۲. حالت دستی (`manual: true`)
+
+اگر ترجیح می‌دهید کد در سرور خودتان تولید و اعتبارسنجی شود، این پارامتر را `true` بگذارید. در این حالت به جای `length`، فیلد `code` را ارسال می‌کنید.
+
+```typescript
+const client = new MessageWay<true>(API_KEY, true)
+
+const ref = await client.sendSMS({
+  mobile: '09120000000',
+  templateID: 10,
+  code: '84920', // کدی که سیستم شما تولید کرده است
+})
+```
+
+---
+
+## راهنمای متدها و کاربردها
+
+همه متدهای ارسال خروجی را به صورت رشته شناسه رهگیری (`referenceID`) برمی‌گردانند.
+
+### ۱. ارسال پیامک (SMS)
+
+برای ارسال پیام کوتاه به همراه امکان انتخاب سرشماره و اپراتور ارسال‌کننده:
+
+```typescript
+import { MessageWay, SMSProvider } from 'messageway'
+
+const client = new MessageWay(API_KEY)
+
+const ref = await client.sendSMS({
+  mobile: '09120000000',
+  templateID: 10,
+  provider: SMSProvider.Magfa, // مگفا، آتیه، آسیاتک، ارمغان
+  params: ['علی'], // متغیرهای قالب (تا ۱۰ مورد)
+  length: 4, // طول کد در حالت خودکار
+  expireTime: 120, // انقضا به ثانیه (اختیاری)
+  hash: '#AB12cd', // کد هش برای خواندن خودکار پیامک در اندروید (اختیاری)
+  countryCode: 98, // پیش‌شماره کشور (پیش‌فرض ایران ۹۸ است)
+})
+```
+
+---
+
+### ۲. ارسال از طریق پیام‌رسان‌ها
+
+برای ارسال پیام در پیام‌رسان‌های ایرانی با نرخ ارزان‌تر و تحویل سریع:
+
+```typescript
+import { MessageWay, MessengerProvider } from 'messageway'
+
+const client = new MessageWay(API_KEY)
+
+const ref = await client.sendMessenger({
+  mobile: '09120000000',
+  templateID: 12,
+  provider: MessengerProvider.Bale, // گپ، ایتا، بله، روبیکا، آی‌گپ
+  params: ['۱۲۳۴'],
+  length: 4,
+})
+
+// میان‌بر ویژه برای ارسال مستقیم در پیام‌رسان گپ:
+const gapRef = await client.sendGapMessage({
+  mobile: '09120000000',
+  templateID: 12,
+  length: 4,
+})
+```
+
+---
+
+### ۳. ارسال با تماس صوتی (IVR)
+
+در مواقعی که پیامک به دست کاربر نرسیده یا کاربر خط ثابت دارد، راه‌پیام با شماره کاربر تماس گرفته و کد را برایش قرائت می‌کند:
+
+```typescript
+const ref = await client.sendIVR({
+  mobile: '09120000000',
+  templateID: 10,
+  length: 4,
+})
+```
+
+---
+
+### ۴. ارسال هوشمند (Smart)
+
+موتور ارسال هوشمند راه‌پیام به طور خودکار بهترین، سریع‌ترین و در دسترس‌ترین مسیر تحویل پیام را انتخاب می‌کند:
+
+```typescript
+const ref = await client.sendSmart({
+  mobile: '09120000000',
+  templateID: 10,
+  length: 4,
+})
+```
+
+---
+
+### ۵. متد عمومی ارسال (`send`)
+
+در صورت نیاز به ارسال مستقیم با ساختار خام وب‌سرویس:
+
+```typescript
+const response = await client.send({
+  method: 'sms',
+  mobile: '09120000000',
+  templateID: 10,
+  length: 4,
+})
+
+console.log(response.referenceID)
+```
+
+---
+
+### ۶. بررسی وضعیت پیام (`getStatus`)
+
+با در دست داشتن شناسه پیگیری پیام، می‌توانید وضعیت تحویل و روش ارسال آن را بررسی کنید:
+
+```typescript
+const status = await client.getStatus({
+  OTPReferenceID: '1628160593121007556',
+})
+
+console.log('روش ارسال:', status.OTPMethod) // sms | ivr | messenger | email
+console.log('وضعیت تحویل:', status.OTPStatus) // pending | delivered | seen | ...
+console.log('آیا تایید شده؟', status.OTPVerified) // true / false
+```
+
+---
+
+### ۷. اعتبارسنجی کد یکبارمصرف (`verify`)
+
+هنگامی که از حالت تولید خودکار کد استفاده کرده‌اید، می‌توانید کد ارائه‌شده توسط کاربر را مستقیماً از طریق راه‌پیام تایید نمایید:
+
+```typescript
+try {
+  await client.verify({
+    mobile: '09120000000',
+    OTP: '58291',
+    countryCode: 98, // اختیاری
+  })
+
+  console.log('کد صحیح است و اعتبارسنجی شد.')
+} catch (error) {
+  if (isMessageWayError(error)) {
+    console.log(`کد نامعتبر است یا منقضی شده: ${error.message} (کد: ${error.code})`)
+  }
+}
+```
+
+> **نکته:** اعتبارسنجی کدهای دستی (`manual: true`) باید در سیستم خودتان انجام شود و این متد برای آنها کاربرد ندارد.
+
+---
+
+### ۸. مشاهده متن قالب (`getTemplate`)
+
+برای دریافت متن و مشخصات قالبی که از قبل در پنل راه‌پیام ثبت کرده‌اید:
+
+```typescript
+const result = await client.getTemplate({ templateID: 12 })
+console.log('متن قالب:', result.data.template)
+```
+
+---
+
+### ۹. استعلام موجودی حساب (`getBalance`)
+
+برای بررسی میزان اعتبار ریالی باقی‌مانده در حساب:
+
+```typescript
+const balanceInfo = await client.getBalance()
+console.log('موجودی باقی‌مانده (ریال):', balanceInfo.data.balance)
+```
+
+---
+
+## جدول خلاصه متدهای SDK
+
+| نام متد در SDK            | اندپوینت API         | شرح عملکرد                    | نوع خروجی                        |
+| :------------------------ | :------------------- | :---------------------------- | :------------------------------- |
+| `send(options)`           | `POST /send`         | ارسال مستقیم با مشخص کردن روش | `Promise<SendResponse>`          |
+| `sendSMS(options)`        | `POST /send`         | ارسال پیامک تلفن همراه        | `Promise<string>` (شناسه پیگیری) |
+| `sendMessenger(options)`  | `POST /send`         | ارسال در پیام‌رسان‌های بومی     | `Promise<string>` (شناسه پیگیری) |
+| `sendGapMessage(options)` | `POST /send`         | ارسال مستقیم در پیام‌رسان گپ   | `Promise<string>` (شناسه پیگیری) |
+| `sendIVR(options)`        | `POST /send`         | ارسال از طریق تماس صوتی       | `Promise<string>` (شناسه پیگیری) |
+| `sendSmart(options)`      | `POST /send`         | ارسال از طریق موتور هوشمند    | `Promise<string>` (شناسه پیگیری) |
+| `verify(options)`         | `POST /otp/verify`   | تایید کد یکبارمصرف کاربر      | `Promise<void>`                  |
+| `getStatus(options)`      | `POST /status`       | استعلام وضعیت تحویل پیام       | `Promise<StatusResponse>`        |
+| `getTemplate(options)`    | `POST /template/get` | دریافت متن قالب پیام          | `Promise<TemplateResponse>`      |
+| `getBalance(options?)`    | `POST /balance/get`  | دریافت موجودی حساب کاربری     | `Promise<BalanceResponse>`       |
+
+---
+
+## ثوابت و ارائه‌دهندگان (Enums)
+
+همه این تایپ‌ها و شمارنده‌ها از پکیج قابل ایمپورت هستند:
+
+### اپراتورهای پیامک (`SMSProvider`)
+
+```typescript
+import { SMSProvider } from 'messageway'
+
+// SMSProvider.Magfa    = 1 (مگفا)
+// SMSProvider.Atieh    = 2 (آتیه داده‌پرداز)
+// SMSProvider.Asiatech = 3 (آسیاتک)
+// SMSProvider.Armaghan = 5 (ارمغان راه طلایی)
+```
+
+### پیام‌رسان‌ها (`MessengerProvider`)
+
+```typescript
+import { MessengerProvider } from 'messageway'
+
+// MessengerProvider.Gap    = 2  (گپ)
+// MessengerProvider.IGap   = 8  (آی‌گپ)
+// MessengerProvider.Eitaa  = 9  (ایتا)
+// MessengerProvider.Bale   = 10 (بله)
+// MessengerProvider.Rubika = 12 (روبیکا)
+```
+
+### وضعیت‌های پیام (`MessageStatus`)
+
+- `'pending'`: در صف ارسال
+- `'operatorDelivered'`: تحویل داده شده به اپراتور
+- `'sent'`: ارسال شده
+- `'delivered'`: با موفقیت به گوشی کاربر تحویل داده شد
+- `'seen'`: پیام توسط کاربر در پیام‌رسان مشاهده شد
+- `'notDelivered'`: عدم تحویل توسط اپراتور
+- `'failed'`: ناموفق در ارسال
+
+---
+
+## مدیریت خطاها
+
+هنگامی که وب‌سرویس راه‌پیام پاسخی حاوی خطا بازگرداند، کتابخانه آن را به صورت یک شیء استاندارد `MessageError` ریجکت می‌کند:
+
+```typescript
+export interface MessageError {
+  code: number | string // کد عددی یا متنی خطا
+  message: string // شرح خطای فارسی یا انگلیسی
+  traceID?: string // شناسه رهگیری درخواست جهت پیگیری با پشتیبانی
+}
+```
+
+با استفاده از تابع گارد نوع `isMessageWayError` می‌توانید خطاهای سامانه را از قطعی اینترنت و خطاهای غیرمنتظره تفکیک کنید:
+
+```typescript
+import { MessageWay, isMessageWayError } from 'messageway'
+
+const client = new MessageWay('YOUR_API_KEY')
+
+try {
+  await client.sendSMS({ mobile: '09120000000', templateID: 9999 })
+} catch (error) {
+  if (isMessageWayError(error)) {
+    // خطای برگشتی از سمت سرور راه‌پیام
+    console.error(`کد خطا: ${error.code}`)
+    console.error(`پیام خطا: ${error.message}`)
+    if (error.traceID) {
+      console.error(`شناسه پیگیری پشتیبانی: ${error.traceID}`)
+    }
+  } else {
+    // خطای شبکه، تایم‌اوت یا اتصال
+    console.error('خطای غیرمنتظره:', error)
+  }
+}
+```
+
+### تغییر زبان خطای یک درخواست خاص
+
+حتی اگر زبان پیش‌فرض کلاینت را فارسی گذاشته باشید، در هر فراخوانی می‌توانید زبان خطا را تغییر دهید:
+
+```typescript
+await client.verify({
+  mobile: '09120000000',
+  OTP: '1234',
+  language: 'en', // متن پیام خطا در صورت اشتباه بودن انگلیسی برگردد
+})
+```
+
+---
+
+## مجوز
+
+این پروژه تحت مجوز [MIT](LICENSE) منتشر شده است.
+
+</div>

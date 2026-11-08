@@ -1,6 +1,24 @@
-import { SendInput, SendManuallyInput, SendAutomaticInput, VerifyRequest, StatusRequest, StatusResponse, MessageError, SendRequest, SendResponse, MessengerProvider, BalanceResponse } from './types'
-export { SendInput, SendManuallyInput as SendManuallyInput, SendAutomaticInput, VerifyRequest, StatusRequest, StatusResponse, MessageError as OTPError }
-export { MessageMethod as OTPMethod, MessageStatus as OTPStatus } from './types'
+import type {
+  SendInput,
+  VerifyRequest,
+  VerifyResponse,
+  StatusRequest,
+  StatusResponse,
+  MessageError,
+  SendRequest,
+  SendResponse,
+  TemplateRequest,
+  TemplateResponse,
+  BalanceRequest,
+  BalanceResponse,
+  Language,
+  RequestOptions,
+  MessageStatus,
+} from './types'
+import { SMSProvider, MessengerProvider } from './types'
+
+export * from './types'
+export type { MessageError as OTPError, MessageStatus as OTPStatus }
 
 const MESSAGE_WAY_HOST = 'https://api.msgway.com'
 
@@ -11,7 +29,12 @@ const MESSAGE_WAY_HOST = 'https://api.msgway.com'
  * @returns `error` is a standard MessageWay error
  */
 export function isMessageWayError(error: any): error is MessageError {
-  return !!(error && error.code && error.message && error.constructor === Object)
+  return !!(
+    error &&
+    typeof error === 'object' &&
+    (typeof error.code === 'number' || typeof error.code === 'string') &&
+    typeof error.message === 'string'
+  )
 }
 
 export class MessageWay<IsManual extends boolean = false> {
@@ -23,44 +46,50 @@ export class MessageWay<IsManual extends boolean = false> {
   constructor(
     private readonly apiKey: string,
     manual: IsManual = false as IsManual,
-    private readonly language = 'fa-IR') {
-      this.sendSMS = this.sendSMS.bind(this)
-      this.sendIVR = this.sendIVR.bind(this)
-      this.sendGapMessage = this.sendGapMessage.bind(this)
-      this.verify = this.verify.bind(this)
-      this.getStatus = this.getStatus.bind(this)
-      this.getBalance = this.getBalance.bind(this)
+    private readonly language: Language = 'fa',
+  ) {
+    this.send = this.send.bind(this)
+    this.sendSMS = this.sendSMS.bind(this)
+    this.sendIVR = this.sendIVR.bind(this)
+    this.sendSmart = this.sendSmart.bind(this)
+    this.sendMessenger = this.sendMessenger.bind(this)
+    this.sendGapMessage = this.sendGapMessage.bind(this)
+    this.sendWhatsAppMessage = this.sendWhatsAppMessage.bind(this)
+    this.verify = this.verify.bind(this)
+    this.getStatus = this.getStatus.bind(this)
+    this.getTemplate = this.getTemplate.bind(this)
+    this.getBalance = this.getBalance.bind(this)
   }
 
-  private request<T>(path: string, body: object): Promise<T> {
-    let language = this.language
-
-    if ('language' in body) {
-      language = (body as any).language
-      delete (body as any).language
-    }
+  private request<T>(path: string, body: RequestOptions): Promise<T> {
+    const { language = this.language, ...requestBody } = body
 
     return fetch(MESSAGE_WAY_HOST + path, {
       headers: {
         'accept-language': language,
         'content-type': 'application/json',
-        apiKey: this.apiKey
+        apiKey: this.apiKey,
       },
       method: 'post',
-      body: JSON.stringify(body),
+      body: JSON.stringify(requestBody),
     })
-      .then(async response => {
+      .then(async (response) => {
         const responseBody = await response.text()
-        let result: { status?: any, error?: any }
+        let result: { status?: string; error?: MessageError }
         try {
           result = JSON.parse(responseBody)
         } catch (err) {
           if (!response.ok) {
-            throw new Error(`Request failed with status code ${response.status} (${response.statusText})`)
+            throw new Error(
+              `Request failed with status code ${response.status} (${response.statusText})`,
+            )
           }
           return Promise.reject(err)
         }
-        if (!response.ok || result.error) {
+        if (!result || typeof result !== 'object') {
+          throw new Error('Invalid response from MessageWay')
+        }
+        if (!response.ok || result.status === 'error') {
           return Promise.reject(result)
         }
         delete result.status
@@ -68,77 +97,92 @@ export class MessageWay<IsManual extends boolean = false> {
         return result as T
       })
       .catch((error: any) => {
-        if (error.status === 'error' && isMessageWayError(error.error)) {
+        if (error && error.status === 'error' && isMessageWayError(error.error)) {
           return Promise.reject(error.error)
         }
         return Promise.reject(error)
       })
   }
 
-  private send(method: SendRequest['method'], options: SendInput<IsManual>): Promise<string> {
-    const body = {
-      method,
-      ...options,
-    } as SendRequest
-
-    return this.request<SendResponse>('/send', body)
-      .then(result => result.referenceID)
+  /** Send a message using any documented method and its supported provider. */
+  send(options: SendRequest): Promise<SendResponse> {
+    return this.request<SendResponse>('/send', options)
   }
+
   /**
    * Send OTP Code via SMS
    * @param options Send options
    * @returns Reference ID
    */
-  sendSMS(options: SendInput<IsManual>): Promise<string> {
-    return this.send('sms', options)
+  sendSMS(options: SendInput<IsManual> & { provider?: SMSProvider }): Promise<string> {
+    return this.send({ ...options, method: 'sms' }).then((result) => result.referenceID)
   }
+
   /**
    * Send OTP Code via IVR (Interactive voice response)
    * @param options Send options
    * @returns Reference ID
    */
   sendIVR(options: SendInput<IsManual>): Promise<string> {
-    return this.send('ivr', options)
+    return this.send({ ...options, method: 'ivr' }).then((result) => result.referenceID)
   }
+
+  /** Send a message using smart delivery. Returns the reference ID. */
+  sendSmart(options: SendInput<IsManual>): Promise<string> {
+    return this.send({ ...options, method: 'smart' }).then((result) => result.referenceID)
+  }
+
+  /** Send via a documented messenger provider. Returns the reference ID. */
+  sendMessenger(options: SendInput<IsManual> & { provider?: MessengerProvider }): Promise<string> {
+    return this.send({ ...options, method: 'messenger' }).then((result) => result.referenceID)
+  }
+
   /**
    * Send OTP Code via Gap Messenger ([gap.im](https://gap.im))
    * @returns Reference ID
    */
   sendGapMessage(options: SendInput<IsManual>): Promise<string> {
-    return this.send('messenger', { ...options, provider: MessengerProvider.Gap })
+    return this.sendMessenger({ ...options, provider: MessengerProvider.Gap })
   }
 
   /**
    * Send OTP Code via WhatsApp Messenger ([whatsapp.com](https://www.whatsapp.com))
    * @returns Reference ID
+   * @deprecated WhatsApp is not listed in the current API documentation. Use sendMessenger with a documented provider.
    */
   sendWhatsAppMessage(options: SendInput<IsManual>): Promise<string> {
-    return this.send('messenger', { ...options, provider: MessengerProvider.WhatsApp })
+    return this.sendMessenger({
+      ...options,
+      provider: MessengerProvider.WhatsApp,
+    })
   }
 
   /**
-   * Verify the user entered code.
+   * Verify a user-entered OTP generated by MessageWay. Custom codes cannot be verified here.
    * @returns If the code is correct the promise resolves.
    */
-  verify(options: VerifyRequest): Promise<void> {
-    return this.request<void>('/otp/verify', options)
-      .then(() => { })
+  verify(options: VerifyRequest): Promise<VerifyResponse> {
+    return this.request<VerifyResponse>('/otp/verify', options).then(() => {})
   }
 
   /**
    * Get status of the sent OTP.
-   * @param referenceID
+   * @param options The OTP reference ID and optional response language.
    */
   getStatus(options: StatusRequest): Promise<StatusResponse> {
     return this.request<StatusResponse>('/status', options)
   }
 
+  /** Get the text of a template. The response contains data.template. */
+  getTemplate(options: TemplateRequest): Promise<TemplateResponse> {
+    return this.request<TemplateResponse>('/template/get', options)
+  }
+
   /**
    * Get account balance.
-   * @returns A promise that resolves to the account balance as a number.
-   * @author amirmm4d
+   * @returns A response containing the account balance in data.balance.
    */
-  getBalance(): Promise<BalanceResponse> {
-    return this.request<BalanceResponse>('/balance/get', {})
+  getBalance(options: BalanceRequest = {}): Promise<BalanceResponse> {
+    return this.request<BalanceResponse>('/balance/get', options)
   }
 }

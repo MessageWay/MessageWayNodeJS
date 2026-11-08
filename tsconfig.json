@@ -1,12 +1,14 @@
 {
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "vite.config.ts"],
   "compilerOptions": {
-    "target": "ES2015",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "strict": true,
     "noImplicitAny": true,
-    "module": "CommonJS",
     "outDir": "dist",
     "declaration": true,
-    "lib": ["ES6", "DOM"]
+    "lib": ["ES2022", "DOM"],
+    "skipLibCheck": true
   }
 }
