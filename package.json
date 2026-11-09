@@ -1,53 +1,70 @@
 {
   "name": "messageway",
-  "version": "1.3.0",
-  "description": "MessageWay nodeJS library",
-  "main": "dist/index.js",
-  "scripts": {
-    "compile": "tsc --watch",
-    "doc:serve": "typedoc --watch",
-    "doc:deploy": "typedoc && cd docs && git add . && git commit && git push",
-    "prepack": "tsc",
-    "test": "jest"
-  },
-  "files": [
-    "dist/**/*"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/MessageWay/MessageWayNodeJS.git"
-  },
+  "version": "2.0.0",
+  "description": "MessageWay NodeJS SDK",
   "keywords": [
-    "otp",
-    "sms",
+    "bale",
+    "eitaa",
+    "gap",
+    "igap",
     "ivr",
-    "message",
-    "whatsapp",
-    "gap"
+    "messageway",
+    "messenger",
+    "otp",
+    "rubika",
+    "smart",
+    "sms"
   ],
+  "homepage": "https://github.com/MessageWay/MessageWayNodeJS#readme",
+  "bugs": {
+    "url": "https://github.com/MessageWay/MessageWayNodeJS/issues"
+  },
+  "license": "MIT",
   "contributors": [
     "Mojtaba Ghasemzadeh Tehrany",
     "Ehsan Sabet <ehsan.sabet@hotmail.com>",
     "Amirreza Zarkesh <amirreza.zarkesh.23@gmail.com>"
   ],
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/MessageWay/MessageWayNodeJS/issues"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MessageWay/MessageWayNodeJS.git"
   },
-  "homepage": "https://messageway.github.io/MessageWayNodeJS/",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/index.d.mts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test --run",
+    "test:watch": "vp test",
+    "lint": "vp lint",
+    "lint:fix": "vp lint --fix",
+    "fmt": "vp fmt",
+    "fmt:check": "vp fmt --check",
+    "check": "vp check",
+    "check:fix": "vp check --fix",
+    "prepack": "vp pack"
+  },
   "devDependencies": {
-    "@types/got": "^9.6.12",
-    "@types/jest": "^26.0.24",
-    "@types/node": "^16.4.11",
-    "dotenv": "^10.0.0",
-    "jest": "^27.0.6",
-    "typedoc": "^0.21.5",
-    "typescript": "^4.3.5"
+    "typescript": "^7.0.2",
+    "vite-plus": "^1.5.0"
   },
   "engines": {
-    "node": ">=10.19.0"
+    "node": ">=18.0.0"
   },
-  "dependencies": {
-    "got": "^11.8.2"
-  }
+  "packageManager": "pnpm@10.29.1"
 }
