@@ -266,24 +266,177 @@ describe('MessageWay SDK', () => {
       'Request failed with status code 500 (Internal Server Error)',
     )
   })
+
+  it('sends message via generic send() method', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () =>
+        Promise.resolve(JSON.stringify({ status: 'success', referenceID: 'ref-generic' })),
+    })
+    globalThis.fetch = fetchMock
+
+    const client = new MessageWay('test-api-key')
+    const res = await client.send({
+      method: 'sms',
+      mobile: '09120000000',
+      templateID: 10,
+    })
+
+    expect(res).toEqual({ referenceID: 'ref-generic' })
+  })
+
+  it('serializes optional fields (countryCode, expireTime, hash, code)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(JSON.stringify({ status: 'success', referenceID: 'ref-opt' })),
+    })
+    globalThis.fetch = fetchMock
+
+    const client = new MessageWay('test-api-key', true)
+    await client.sendSMS({
+      countryCode: 98,
+      mobile: '9120000000',
+      templateID: 10,
+      code: '1234',
+      expireTime: 300,
+      hash: 'abc123',
+    })
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+    expect(body).toEqual({
+      method: 'sms',
+      countryCode: 98,
+      mobile: '9120000000',
+      templateID: 10,
+      code: '1234',
+      expireTime: 300,
+      hash: 'abc123',
+    })
+  })
+
+  it('rejects when response body is not valid JSON and status is 200', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve('not-json'),
+    })
+    globalThis.fetch = fetchMock
+
+    const client = new MessageWay('test-api-key')
+    await expect(client.getBalance()).rejects.toThrow()
+  })
+
+  it('rejects when response body is not an object', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve('null'),
+    })
+    globalThis.fetch = fetchMock
+
+    const client = new MessageWay('test-api-key')
+    await expect(client.getBalance()).rejects.toThrow('Invalid response from MessageWay')
+  })
+
+  it('rejects with raw error object when error is not standard MessageWay error', async () => {
+    const rawError = {
+      status: 'error',
+      error: 'non-standard error format',
+    }
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(JSON.stringify(rawError)),
+    })
+    globalThis.fetch = fetchMock
+
+    const client = new MessageWay('test-api-key')
+    await expect(client.getBalance()).rejects.toEqual(rawError)
+  })
 })
 
 const liveApiKey = process.env.API_KEY
 const liveMobile = process.env.TEST_PHONE_NUMBER
+const liveTemplateID = Number(process.env.TEMPLATE_ID) || 3
 
 describe.runIf(Boolean(liveApiKey && liveMobile))('Live API integration', () => {
   const client = new MessageWay(liveApiKey!, false)
 
+  it('retrieves account balance', async () => {
+    const res = await client.getBalance()
+    expect(res).toHaveProperty('data.balance')
+    expect(typeof res.data.balance).toBe('number')
+    expect(res.data.balance).toBeGreaterThanOrEqual(0)
+  })
+
+  it('fetches existing template details', async () => {
+    const res = await client.getTemplate({ templateID: liveTemplateID })
+    expect(res).toHaveProperty('data.template')
+    expect(typeof res.data.template).toBe('string')
+  })
+
+  it('rejects on non-existent template', async () => {
+    await expect(client.getTemplate({ templateID: 999999 })).rejects.toSatisfy(isMessageWayError)
+  })
+
+  it('rejects with MessageWay error on invalid API key', async () => {
+    const badClient = new MessageWay('bad-api-key')
+    await expect(badClient.getBalance()).rejects.toSatisfy(isMessageWayError)
+  })
+
   it('sends SMS and checks status live', async () => {
     const ref = await client.sendSMS({
       mobile: liveMobile!,
-      templateID: 12,
+      templateID: liveTemplateID,
       length: 4,
-      params: ['test'],
+    })
+
+    expect(typeof ref).toBe('string')
+    expect(ref.length).toBeGreaterThan(0)
+    const status = await client.getStatus({ OTPReferenceID: ref })
+    expect(status).toHaveProperty('OTPStatus')
+    expect(status.OTPMethod).toBe('sms')
+  })
+
+  it('sends SMS with custom code in manual mode', async () => {
+    const manualClient = new MessageWay(liveApiKey!, true)
+    const ref = await manualClient.sendSMS({
+      mobile: liveMobile!,
+      templateID: liveTemplateID,
+      code: '5432',
+    })
+
+    expect(typeof ref).toBe('string')
+    expect(ref.length).toBeGreaterThan(0)
+  })
+
+  it('sends Smart message', async () => {
+    const ref = await client.sendSmart({
+      mobile: liveMobile!,
+      templateID: liveTemplateID,
+      length: 4,
     })
 
     expect(typeof ref).toBe('string')
     const status = await client.getStatus({ OTPReferenceID: ref })
     expect(status).toHaveProperty('OTPStatus')
+  })
+
+  it('sends Gap message', async () => {
+    const ref = await client.sendGapMessage({
+      mobile: liveMobile!,
+      templateID: liveTemplateID,
+      length: 4,
+    })
+
+    expect(typeof ref).toBe('string')
+    const status = await client.getStatus({ OTPReferenceID: ref })
+    expect(status).toHaveProperty('OTPStatus')
+    expect(status.OTPMethod).toBe('messenger')
+  })
+
+  it('rejects verification on invalid OTP', async () => {
+    await expect(client.verify({ mobile: liveMobile!, OTP: '000000' })).rejects.toSatisfy(
+      isMessageWayError,
+    )
   })
 })
