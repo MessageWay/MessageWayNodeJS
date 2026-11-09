@@ -1,4 +1,5 @@
-export type Language = 'fa' | 'en'
+/** Supported languages: 'fa', 'en', and 'fa-IR' (mapped to 'fa' for backward compatibility with v1) */
+export type Language = 'fa' | 'en' | 'fa-IR'
 
 export interface RequestOptions {
   language?: Language
@@ -53,6 +54,23 @@ export interface MessageError {
   traceID?: string
 }
 
+export class MessageWayHttpError extends Error {
+  readonly status: number
+  readonly statusText: string
+  readonly response: any
+
+  constructor(status: number, statusText: string, message: string, response?: any) {
+    super(message)
+    this.name = 'MessageWayHttpError'
+    this.status = status
+    this.statusText = statusText
+    this.response = response
+    if (response !== undefined) {
+      this.cause = response
+    }
+  }
+}
+
 export interface SendInputCommon extends RequestOptions {
   templateID: number
   countryCode?: number
@@ -94,14 +112,31 @@ export interface SendResponse {
   referenceID: string
 }
 
-export interface VerifyRequest extends RequestOptions {
+export interface VerifyRequestCommon extends RequestOptions {
   /** The user mobile number country code */
   countryCode?: number
   /** The user mobile number */
   mobile: string
-  /** The code that user entered */
-  OTP: string
 }
+
+export type VerifyRequest = VerifyRequestCommon &
+  (
+    | {
+        /** The code that user entered */
+        OTP: string
+        /** @deprecated Use `OTP` instead. */
+        otp?: string
+      }
+    | {
+        /**
+         * The code that user entered (for backward compatibility with v1)
+         * @deprecated Use `OTP` instead.
+         */
+        otp: string
+        /** The code that user entered */
+        OTP?: string
+      }
+  )
 
 /** Successful verification has no response payload. */
 export type VerifyResponse = void

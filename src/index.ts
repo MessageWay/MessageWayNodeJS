@@ -15,7 +15,7 @@ import type {
   RequestOptions,
   MessageStatus,
 } from './types'
-import { SMSProvider, MessengerProvider } from './types'
+import { SMSProvider, MessengerProvider, MessageWayHttpError } from './types'
 
 export * from './types'
 export type { MessageError as OTPError, MessageStatus as OTPStatus }
@@ -62,7 +62,9 @@ export class MessageWay<IsManual extends boolean = false> {
   }
 
   private request<T>(path: string, body: RequestOptions): Promise<T> {
-    const { language = this.language, ...requestBody } = body
+    const requestedLanguage = body.language || this.language
+    const language = requestedLanguage === 'fa-IR' ? 'fa' : requestedLanguage
+    const { language: _lang, ...requestBody } = body
 
     return fetch(MESSAGE_WAY_HOST + path, {
       headers: {
@@ -72,36 +74,54 @@ export class MessageWay<IsManual extends boolean = false> {
       },
       method: 'post',
       body: JSON.stringify(requestBody),
+    }).then(async (response) => {
+      const responseBody = await response.text()
+      let result: { status?: string; error?: MessageError }
+      try {
+        result = JSON.parse(responseBody)
+      } catch (err) {
+        if (!response.ok) {
+          throw new MessageWayHttpError(
+            response.status,
+            response.statusText,
+            `Request failed with status code ${response.status} (${response.statusText})`,
+            responseBody,
+          )
+        }
+        return Promise.reject(err)
+      }
+      if (!result || typeof result !== 'object') {
+        throw new Error('Invalid response from MessageWay')
+      }
+      if (!response.ok) {
+        if (result.status === 'error' && isMessageWayError(result.error)) {
+          return Promise.reject(result.error)
+        }
+        const errorMessage =
+          (typeof (result as any).message === 'string' && (result as any).message) ||
+          (typeof result.error === 'string' && result.error) ||
+          `Request failed with status code ${response.status} (${response.statusText})`
+        return Promise.reject(
+          new MessageWayHttpError(response.status, response.statusText, errorMessage, result),
+        )
+      }
+      if (result.status === 'error') {
+        if (isMessageWayError(result.error)) {
+          return Promise.reject(result.error)
+        }
+        const errorMessage =
+          (typeof result.error === 'string' && result.error) ||
+          (typeof (result as any).message === 'string' && (result as any).message) ||
+          'Request failed with unknown error'
+        const err = new Error(errorMessage) as Error & { response?: any }
+        err.response = result
+        err.cause = result
+        return Promise.reject(err)
+      }
+      delete result.status
+      delete result.error
+      return result as T
     })
-      .then(async (response) => {
-        const responseBody = await response.text()
-        let result: { status?: string; error?: MessageError }
-        try {
-          result = JSON.parse(responseBody)
-        } catch (err) {
-          if (!response.ok) {
-            throw new Error(
-              `Request failed with status code ${response.status} (${response.statusText})`,
-            )
-          }
-          return Promise.reject(err)
-        }
-        if (!result || typeof result !== 'object') {
-          throw new Error('Invalid response from MessageWay')
-        }
-        if (!response.ok || result.status === 'error') {
-          return Promise.reject(result)
-        }
-        delete result.status
-        delete result.error
-        return result as T
-      })
-      .catch((error: any) => {
-        if (error && error.status === 'error' && isMessageWayError(error.error)) {
-          return Promise.reject(error.error)
-        }
-        return Promise.reject(error)
-      })
   }
 
   /** Send a message using any documented method and its supported provider. */
@@ -162,7 +182,8 @@ export class MessageWay<IsManual extends boolean = false> {
    * @returns If the code is correct the promise resolves.
    */
   verify(options: VerifyRequest): Promise<VerifyResponse> {
-    return this.request<VerifyResponse>('/otp/verify', options).then(() => {})
+    const { otp, OTP = otp, ...rest } = options
+    return this.request<VerifyResponse>('/otp/verify', { ...rest, OTP }).then(() => {})
   }
 
   /**

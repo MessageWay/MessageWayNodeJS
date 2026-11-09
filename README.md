@@ -296,7 +296,7 @@ console.log('آیا تایید شده؟', status.OTPVerified) // true / false
 try {
   await client.verify({
     mobile: '09120000000',
-    OTP: '58291',
+    OTP: '58291', // یا otp برای سازگاری با نسخه ۱
     countryCode: 98, // اختیاری
   })
 
@@ -420,8 +420,14 @@ try {
       console.error(`شناسه پیگیری پشتیبانی: ${error.traceID}`)
     }
   } else {
-    // خطای شبکه، تایم‌اوت یا اتصال
-    console.error('خطای غیرمنتظره:', error)
+    // خطای شبکه، تایم‌اوت یا پاسخ‌های HTTP غیرمنتظره
+    console.error('پیام خطا:', error.message)
+    if (error.status) {
+      console.error(`کد وضعیت HTTP: ${error.status}`)
+    }
+    if (error.response) {
+      console.error('دیتای خام پاسخ سرور:', error.response)
+    }
   }
 }
 ```

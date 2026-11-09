@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vite-plus/test'
-import { MessageWay, isMessageWayError, SMSProvider, MessengerProvider } from '../src/index'
+import {
+  MessageWay,
+  isMessageWayError,
+  SMSProvider,
+  MessengerProvider,
+  MessageWayHttpError,
+} from '../src/index'
 
 describe('isMessageWayError', () => {
   it('identifies standard MessageWay error objects with numeric code', () => {
@@ -147,6 +153,35 @@ describe('MessageWay SDK', () => {
     expect(url).toBe('https://api.msgway.com/otp/verify')
     const body = JSON.parse(init.body)
     expect(body).toEqual({ mobile: '09120000000', OTP: '1234' })
+  })
+
+  it('supports legacy lowercase otp property in verify', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(JSON.stringify({ status: 'success' })),
+    })
+    globalThis.fetch = fetchMock
+
+    const client = new MessageWay('test-api-key')
+    await expect(client.verify({ mobile: '09120000000', otp: '1234' })).resolves.toBeUndefined()
+
+    const [, init] = fetchMock.mock.calls[0]
+    const body = JSON.parse(init.body)
+    expect(body).toEqual({ mobile: '09120000000', OTP: '1234' })
+  })
+
+  it('normalizes fa-IR language to fa in request headers', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(JSON.stringify({ status: 'success' })),
+    })
+    globalThis.fetch = fetchMock
+
+    const client = new MessageWay('test-api-key', false, 'fa-IR')
+    await client.getBalance()
+
+    const [, init] = fetchMock.mock.calls[0]
+    expect(init.headers['accept-language']).toBe('fa')
   })
 
   it('retrieves message status', async () => {
@@ -338,10 +373,11 @@ describe('MessageWay SDK', () => {
     await expect(client.getBalance()).rejects.toThrow('Invalid response from MessageWay')
   })
 
-  it('rejects with raw error object when error is not standard MessageWay error', async () => {
+  it('rejects with Error instance preserving response and cause when error is not standard MessageWay error', async () => {
     const rawError = {
       status: 'error',
       error: 'non-standard error format',
+      customCode: 999,
     }
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -350,7 +386,82 @@ describe('MessageWay SDK', () => {
     globalThis.fetch = fetchMock
 
     const client = new MessageWay('test-api-key')
-    await expect(client.getBalance()).rejects.toEqual(rawError)
+    try {
+      await client.getBalance()
+      expect.unreachable('Should have rejected')
+    } catch (err: any) {
+      expect(err).toBeInstanceOf(Error)
+      expect(err.message).toBe('non-standard error format')
+      expect(err.response).toEqual(rawError)
+      expect(err.cause).toEqual(rawError)
+    }
+  })
+
+  it('rejects with MessageWayHttpError preserving raw response and status on HTTP error with JSON body', async () => {
+    const rawPayload = { message: 'API key is inactive', details: { reason: 'expired' } }
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      text: () => Promise.resolve(JSON.stringify(rawPayload)),
+    })
+    globalThis.fetch = fetchMock
+
+    const client = new MessageWay('test-api-key')
+    try {
+      await client.getBalance()
+      expect.unreachable('Should have rejected')
+    } catch (err: any) {
+      expect(err).toBeInstanceOf(MessageWayHttpError)
+      expect(err.message).toBe('API key is inactive')
+      expect(err.status).toBe(401)
+      expect(err.statusText).toBe('Unauthorized')
+      expect(err.response).toEqual(rawPayload)
+      expect(err.cause).toEqual(rawPayload)
+    }
+  })
+
+  it('rejects with MessageWayHttpError preserving raw text on HTTP error with non-JSON body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 502,
+      statusText: 'Bad Gateway',
+      text: () => Promise.resolve('<html>502 Bad Gateway</html>'),
+    })
+    globalThis.fetch = fetchMock
+
+    const client = new MessageWay('test-api-key')
+    try {
+      await client.getBalance()
+      expect.unreachable('Should have rejected')
+    } catch (err: any) {
+      expect(err).toBeInstanceOf(MessageWayHttpError)
+      expect(err.status).toBe(502)
+      expect(err.response).toBe('<html>502 Bad Gateway</html>')
+    }
+  })
+
+  it('rejects with MessageError on HTTP error status with standard MessageWay error payload', async () => {
+    const errorPayload = {
+      status: 'error',
+      error: {
+        code: 40001,
+        message: 'apiKey not found',
+      },
+    }
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden',
+      text: () => Promise.resolve(JSON.stringify(errorPayload)),
+    })
+    globalThis.fetch = fetchMock
+
+    const client = new MessageWay('test-api-key')
+    await expect(client.getBalance()).rejects.toEqual({
+      code: 40001,
+      message: 'apiKey not found',
+    })
   })
 })
 
