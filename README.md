@@ -61,16 +61,22 @@
 
 ‏با استفاده از پکیج‌منیجر مورد نظر خود، کتابخانه را نصب کنید:
 
+<div dir="ltr">
+
 ```bash
 # با npm
 npm install messageway
 ```
+
+</div>
 
 ---
 
 ## ‏شروع سریع
 
 ### ‏استفاده در ⁦TypeScript / ES Modules⁩
+
+<div dir="ltr">
 
 ```typescript
 import { MessageWay, SMSProvider } from 'messageway'
@@ -97,7 +103,11 @@ async function sendOtp() {
 sendOtp()
 ```
 
+</div>
+
 ### ‏استفاده در ⁦CommonJS⁩ (روش سنتی نودجی‌اس)
+
+<div dir="ltr">
 
 ```javascript
 const { MessageWay, MessengerProvider, isMessageWayError } = require('messageway')
@@ -123,15 +133,21 @@ client
   })
 ```
 
+</div>
+
 ---
 
 ## ‏راه‌اندازی کلاینت و تنظیمات
 
 ‏کلاس اصلی `MessageWay` هنگام ساخت ۳ ورودی می‌پذیرد:
 
+<div dir="ltr">
+
 ```typescript
 const client = new MessageWay(apiKey, manual, language)
 ```
+
+</div>
 
 | پارامتر    | نوع              |   پیش‌فرض   |                                                                   توضیحات |
 | :--------- | :--------------- | :--------: | ------------------------------------------------------------------------: |
@@ -149,6 +165,8 @@ const client = new MessageWay(apiKey, manual, language)
 
 ‏در این حالت، سامانه راه‌پیام کد تصادفی را می‌سازد و برای کاربر می‌فرستد. شما فقط طول کد را با `length` تعیین می‌کنید و بعداً از طریق متد `verify` صحت کد وارد شده توسط کاربر را استعلام می‌کنید.
 
+<div dir="ltr">
+
 ```typescript
 const client = new MessageWay(API_KEY, false)
 
@@ -159,9 +177,13 @@ const ref = await client.sendSMS({
 })
 ```
 
+</div>
+
 #### ‏۲. حالت دستی (`manual: true`)
 
 ‏اگر ترجیح می‌دهید کد در سرور خودتان تولید و اعتبارسنجی شود، این پارامتر را `true` بگذارید. در این حالت به جای `length`، فیلد `code` را ارسال می‌کنید.
+
+<div dir="ltr">
 
 ```typescript
 const client = new MessageWay<true>(API_KEY, true)
@@ -173,6 +195,8 @@ const ref = await client.sendSMS({
 })
 ```
 
+</div>
+
 ---
 
 ## ‏راهنمای متدها و کاربردها
@@ -182,6 +206,8 @@ const ref = await client.sendSMS({
 ### ‏۱. ارسال پیامک ⁦(SMS)⁩
 
 ‏برای ارسال پیام کوتاه به همراه امکان انتخاب سرشماره و اپراتور ارسال‌کننده:
+
+<div dir="ltr">
 
 ```typescript
 import { MessageWay, SMSProvider } from 'messageway'
@@ -200,11 +226,15 @@ const ref = await client.sendSMS({
 })
 ```
 
+</div>
+
 ---
 
 ### ‏۲. ارسال از طریق پیام‌رسان‌ها
 
 ‏برای ارسال پیام در پیام‌رسان‌های ایرانی با نرخ ارزان‌تر و تحویل سریع:
+
+<div dir="ltr">
 
 ```typescript
 import { MessageWay, MessengerProvider } from 'messageway'
@@ -227,11 +257,15 @@ const gapRef = await client.sendGapMessage({
 })
 ```
 
+</div>
+
 ---
 
 ### ‏۳. ارسال با تماس صوتی ⁦(IVR)⁩
 
 ‏در مواقعی که پیامک به دست کاربر نرسیده یا کاربر خط ثابت دارد، راه‌پیام با شماره کاربر تماس گرفته و کد را برایش قرائت می‌کند:
+
+<div dir="ltr">
 
 ```typescript
 const ref = await client.sendIVR({
@@ -241,11 +275,15 @@ const ref = await client.sendIVR({
 })
 ```
 
+</div>
+
 ---
 
 ### ‏۴. ارسال هوشمند ⁦(Smart)⁩
 
 ‏موتور ارسال هوشمند راه‌پیام به طور خودکار بهترین، سریع‌ترین و در دسترس‌ترین مسیر تحویل پیام را انتخاب می‌کند:
+
+<div dir="ltr">
 
 ```typescript
 const ref = await client.sendSmart({
@@ -255,11 +293,15 @@ const ref = await client.sendSmart({
 })
 ```
 
+</div>
+
 ---
 
 ### ‏۵. متد عمومی ارسال (`send`)
 
 ‏در صورت نیاز به ارسال مستقیم با ساختار خام وب‌سرویس:
+
+<div dir="ltr">
 
 ```typescript
 const response = await client.send({
@@ -272,11 +314,15 @@ const response = await client.send({
 console.log(response.referenceID)
 ```
 
+</div>
+
 ---
 
 ### ‏۶. بررسی وضعیت پیام (`getStatus`)
 
 ‏با در دست داشتن شناسه پیگیری پیام، می‌توانید وضعیت تحویل و روش ارسال آن را بررسی کنید:
+
+<div dir="ltr">
 
 ```typescript
 const status = await client.getStatus({
@@ -288,11 +334,15 @@ console.log('وضعیت تحویل:', status.OTPStatus) // pending | delivered |
 console.log('آیا تایید شده؟', status.OTPVerified) // true / false
 ```
 
+</div>
+
 ---
 
 ### ‏۷. اعتبارسنجی کد یکبارمصرف (`verify`)
 
 ‏هنگامی که از حالت تولید خودکار کد استفاده کرده‌اید، می‌توانید کد ارائه‌شده توسط کاربر را مستقیماً از طریق راه‌پیام تایید نمایید:
+
+<div dir="ltr">
 
 ```typescript
 try {
@@ -310,6 +360,8 @@ try {
 }
 ```
 
+</div>
+
 > ‏**نکته:** اعتبارسنجی کدهای دستی (`manual: true`) باید در سیستم خودتان انجام شود و این متد برای آنها کاربرد ندارد.
 
 ---
@@ -318,10 +370,14 @@ try {
 
 ‏برای دریافت متن و مشخصات قالبی که از قبل در پنل راه‌پیام ثبت کرده‌اید:
 
+<div dir="ltr">
+
 ```typescript
 const result = await client.getTemplate({ templateID: 12 })
 console.log('متن قالب:', result.data.template)
 ```
+
+</div>
 
 ---
 
@@ -329,10 +385,14 @@ console.log('متن قالب:', result.data.template)
 
 ‏برای بررسی میزان اعتبار ریالی باقی‌مانده در حساب:
 
+<div dir="ltr">
+
 ```typescript
 const balanceInfo = await client.getBalance()
 console.log('موجودی باقی‌مانده (ریال):', balanceInfo.data.balance)
 ```
+
+</div>
 
 ---
 
@@ -359,6 +419,8 @@ console.log('موجودی باقی‌مانده (ریال):', balanceInfo.data.b
 
 ### ‏اپراتورهای پیامک (`SMSProvider`)
 
+<div dir="ltr">
+
 ```typescript
 import { SMSProvider } from 'messageway'
 
@@ -368,7 +430,11 @@ import { SMSProvider } from 'messageway'
 // SMSProvider.Armaghan = 5 (ارمغان راه طلایی)
 ```
 
+</div>
+
 ### ‏پیام‌رسان‌ها (`MessengerProvider`)
+
+<div dir="ltr">
 
 ```typescript
 import { MessengerProvider } from 'messageway'
@@ -379,6 +445,8 @@ import { MessengerProvider } from 'messageway'
 // MessengerProvider.Bale   = 10 (بله)
 // MessengerProvider.Rubika = 12 (روبیکا)
 ```
+
+</div>
 
 ### ‏وضعیت‌های پیام (`MessageStatus`)
 
@@ -398,6 +466,8 @@ import { MessengerProvider } from 'messageway'
 
 ‏هنگامی که وب‌سرویس راه‌پیام پاسخی حاوی خطا بازگرداند، کتابخانه آن را به صورت یک شیء استاندارد `MessageError` ریجکت می‌کند:
 
+<div dir="ltr">
+
 ```typescript
 export interface MessageError {
   code: number | string // کد عددی یا متنی خطا
@@ -406,7 +476,11 @@ export interface MessageError {
 }
 ```
 
+</div>
+
 ‏با استفاده از تابع گارد نوع `isMessageWayError` می‌توانید خطاهای سامانه را از قطعی اینترنت و خطاهای غیرمنتظره تفکیک کنید:
+
+<div dir="ltr">
 
 ```typescript
 import { MessageWay, isMessageWayError } from 'messageway'
@@ -436,9 +510,13 @@ try {
 }
 ```
 
+</div>
+
 ### ‏تغییر زبان خطای یک درخواست خاص
 
 ‏حتی اگر زبان پیش‌فرض کلاینت را فارسی گذاشته باشید، در هر فراخوانی می‌توانید زبان خطا را تغییر دهید:
+
+<div dir="ltr">
 
 ```typescript
 await client.verify({
@@ -448,11 +526,15 @@ await client.verify({
 })
 ```
 
+</div>
+
 ---
 
 ## ‏دستورات توسعه
 
 ‏اسکریپت‌های زیر برای توسعه، تست و بررسی کیفیت کد در دسترس هستند:
+
+<div dir="ltr">
 
 ```bash
 # بیلد کتابخانه با Vite+ / tsdown
@@ -467,6 +549,8 @@ pnpm run check
 # اصلاح خودکار خطاهای فرمت و کد
 pnpm run check:fix
 ```
+
+</div>
 
 ---
 
