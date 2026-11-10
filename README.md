@@ -131,11 +131,11 @@ client
 const client = new MessageWay(apiKey, manual, language)
 ```
 
-| پارامتر | نوع | پیش‌فرض | توضیحات |
-| :--- | :--- | :---: | ---: |
-| `apiKey` | `string` | _(اجباری)_ | ‏کلید دسترسی دریافت شده از پنل راه‌پیام ⁦([msgway.com](https://msgway.com))⁩. |
-| `manual` | `boolean` | `false` | ‏آیا کد ⁦OTP⁩ را خودتان می‌سازید یا سامانه راه‌پیام بسازد؟ |
-| `language` | `'fa'` \| `'en'` | `'fa'` | ‏زبان پیام‌های خطای وب‌سرویس (فارسی یا انگلیسی). |
+| پارامتر    | نوع              |   پیش‌فرض   |                                                                   توضیحات |
+| :--------- | :--------------- | :--------: | ------------------------------------------------------------------------: |
+| `apiKey`   | `string`         | _(اجباری)_ | ‏کلید دسترسی دریافت شده از پنل راه‌پیام ⁦([msgway.com](https://msgway.com))⁩. |
+| `manual`   | `boolean`        |  `false`   |                     ‏آیا کد ⁦OTP⁩ را خودتان می‌سازید یا سامانه راه‌پیام بسازد؟ |
+| `language` | `'fa'` \| `'en'` |   `'fa'`   |                             ‏زبان پیام‌های خطای وب‌سرویس (فارسی یا انگلیسی). |
 
 ---
 
@@ -336,18 +336,18 @@ console.log('موجودی باقی‌مانده (ریال):', balanceInfo.data.b
 
 ## ‏جدول خلاصه متدهای ⁦SDK⁩
 
-| نام متد در SDK | اندپوینت API | شرح عملکرد | نوع خروجی |
-| :--- | :---: | ---: | :--- |
-| `send(options)` | `POST /send` | ‏ارسال مستقیم با مشخص کردن روش | `Promise<SendResponse>` |
-| `sendSMS(options)` | `POST /send` | ‏ارسال پیامک تلفن همراه (برگشت شناسه پیگیری) | `Promise<string>` |
-| `sendMessenger(options)` | `POST /send` | ‏ارسال در پیام‌رسان‌های بومی (برگشت شناسه پیگیری) | `Promise<string>` |
-| `sendGapMessage(options)` | `POST /send` | ‏ارسال مستقیم در پیام‌رسان گپ (برگشت شناسه پیگیری) | `Promise<string>` |
-| `sendIVR(options)` | `POST /send` | ‏ارسال از طریق تماس صوتی (برگشت شناسه پیگیری) | `Promise<string>` |
-| `sendSmart(options)` | `POST /send` | ‏ارسال از طریق موتور هوشمند (برگشت شناسه پیگیری) | `Promise<string>` |
-| `verify(options)` | `POST /otp/verify` | ‏تایید کد یکبارمصرف کاربر | `Promise<void>` |
-| `getStatus(options)` | `POST /status` | ‏استعلام وضعیت تحویل پیام | `Promise<StatusResponse>` |
-| `getTemplate(options)` | `POST /template/get` | ‏دریافت متن قالب پیام | `Promise<TemplateResponse>` |
-| `getBalance(options?)` | `POST /balance/get` | ‏دریافت موجودی حساب کاربری | `Promise<BalanceResponse>` |
+| نام متد در SDK            |     اندپوینت API     |                                       شرح عملکرد | نوع خروجی                   |
+| :------------------------ | :------------------: | -----------------------------------------------: | :-------------------------- |
+| `send(options)`           |     `POST /send`     |                    ‏ارسال مستقیم با مشخص کردن روش | `Promise<SendResponse>`     |
+| `sendSMS(options)`        |     `POST /send`     |      ‏ارسال پیامک تلفن همراه (برگشت شناسه پیگیری) | `Promise<string>`           |
+| `sendMessenger(options)`  |     `POST /send`     |   ‏ارسال در پیام‌رسان‌های بومی (برگشت شناسه پیگیری) | `Promise<string>`           |
+| `sendGapMessage(options)` |     `POST /send`     | ‏ارسال مستقیم در پیام‌رسان گپ (برگشت شناسه پیگیری) | `Promise<string>`           |
+| `sendIVR(options)`        |     `POST /send`     |     ‏ارسال از طریق تماس صوتی (برگشت شناسه پیگیری) | `Promise<string>`           |
+| `sendSmart(options)`      |     `POST /send`     |  ‏ارسال از طریق موتور هوشمند (برگشت شناسه پیگیری) | `Promise<string>`           |
+| `verify(options)`         |  `POST /otp/verify`  |                         ‏تایید کد یکبارمصرف کاربر | `Promise<void>`             |
+| `getStatus(options)`      |    `POST /status`    |                          ‏استعلام وضعیت تحویل پیام | `Promise<StatusResponse>`   |
+| `getTemplate(options)`    | `POST /template/get` |                             ‏دریافت متن قالب پیام | `Promise<TemplateResponse>` |
+| `getBalance(options?)`    | `POST /balance/get`  |                        ‏دریافت موجودی حساب کاربری | `Promise<BalanceResponse>`  |
 
 ---
 
@@ -380,15 +380,15 @@ import { MessengerProvider } from 'messageway'
 
 ### ‏وضعیت‌های پیام (`MessageStatus`)
 
-| مقدار وضعیت | شرح عملکرد |
-| :--- | ---: |
-| `'pending'` | ‏در صف ارسال |
-| `'operatorDelivered'` | ‏تحویل داده شده به اپراتور |
-| `'sent'` | ‏ارسال شده |
-| `'delivered'` | ‏با موفقیت به گوشی کاربر تحویل داده شد |
-| `'seen'` | ‏پیام توسط کاربر در پیام‌رسان مشاهده شد |
-| `'notDelivered'` | ‏عدم تحویل توسط اپراتور |
-| `'failed'` | ‏ناموفق در ارسال |
+| مقدار وضعیت           |                            شرح عملکرد |
+| :-------------------- | ------------------------------------: |
+| `'pending'`           |                           ‏در صف ارسال |
+| `'operatorDelivered'` |             ‏تحویل داده شده به اپراتور |
+| `'sent'`              |                             ‏ارسال شده |
+| `'delivered'`         | ‏با موفقیت به گوشی کاربر تحویل داده شد |
+| `'seen'`              | ‏پیام توسط کاربر در پیام‌رسان مشاهده شد |
+| `'notDelivered'`      |                ‏عدم تحویل توسط اپراتور |
+| `'failed'`            |                       ‏ناموفق در ارسال |
 
 ---
 
@@ -471,4 +471,3 @@ pnpm run check:fix
 ## ‏مجوز
 
 ‏این پروژه تحت مجوز ⁦[MIT](LICENSE)⁩ منتشر شده است.
-
