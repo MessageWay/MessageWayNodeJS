@@ -1,0 +1,8 @@
+remote_theme: devich/quick@0.0.1
+
+title: "راه‌پیام | کتابخانه Node.js"
+description: "مستندات رسمی کتابخانه Node.js راه‌پیام برای ارسال پیامک، پیام‌رسان و کد یک‌بارمصرف"
+lang: fa
+bg_color: light
+theme_color: red
+baseurl: "/MessageWayNodeJS"
