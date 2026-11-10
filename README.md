@@ -1,4 +1,3 @@
-<div dir="rtl">
 
 <p align="center">
   <img src="logo.png" alt="MessageWay Logo" width="180" />
@@ -450,4 +449,3 @@ await client.verify({
 
 این پروژه تحت مجوز [MIT](LICENSE) منتشر شده است.
 
-</div>
