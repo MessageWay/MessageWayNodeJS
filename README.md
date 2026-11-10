@@ -1,3 +1,5 @@
+<div dir="rtl">
+
 <p align="center">
   <img src="logo.png" alt="MessageWay Logo" width="180" />
 </p>
@@ -471,3 +473,5 @@ pnpm run check:fix
 ## ‏مجوز
 
 ‏این پروژه تحت مجوز ⁦[MIT](LICENSE)⁩ منتشر شده است.
+
+</div>

@@ -1,22 +1,27 @@
 /* Persian right-to-left presentation for the Quick README theme. */
-@import url("https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --pico-font-family: "Vazirmatn", Tahoma, sans-serif;
+  --pico-font-family: 'Vazirmatn', Tahoma, sans-serif;
   --pico-primary: #ed554d;
   --pico-primary-hover: #cf4039;
   --pico-primary-focus: rgba(237, 85, 77, 0.18);
   --pico-border-radius: 0.7rem;
 }
 
-html { direction: rtl; }
+html {
+  direction: rtl;
+}
 body {
   direction: rtl;
   text-align: right;
   font-family: var(--pico-font-family);
   background: linear-gradient(160deg, #fff0ec 0%, #fffafa 30%, #f8f9fc 100%);
 }
-header, footer { display: none; }
+header,
+footer {
+  display: none;
+}
 main {
   max-width: 960px;
   margin: 2.5rem auto;
@@ -26,20 +31,38 @@ main {
   border-radius: 1.25rem;
   box-shadow: 0 12px 45px rgba(41, 32, 39, 0.055);
 }
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--pico-font-family);
   letter-spacing: normal;
   line-height: 1.6;
 }
-h1 { font-size: clamp(1.65rem, 4vw, 2.45rem); text-align: center; }
+h1 {
+  font-size: clamp(1.65rem, 4vw, 2.45rem);
+  text-align: center;
+}
 h2 {
   margin-top: 2.5rem;
   padding-inline-start: 0.8rem;
   border-inline-start: 4px solid #ed554d;
 }
-a { color: #d94840; }
-a:hover { color: #ae302b; }
-p, li, td, th, blockquote { line-height: 1.95; }
+a {
+  color: #d94840;
+}
+a:hover {
+  color: #ae302b;
+}
+p,
+li,
+td,
+th,
+blockquote {
+  line-height: 1.95;
+}
 blockquote {
   border-inline-start: 4px solid #ed554d;
   border-inline-end: 0;
@@ -58,8 +81,20 @@ pre code {
   unicode-bidi: normal;
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
 }
-:not(pre) > code { direction: ltr; unicode-bidi: isolate; }
-table { display: block; max-width: 100%; overflow-x: auto; direction: rtl; }
+:not(pre) > code {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  direction: rtl;
+}
 @media (max-width: 640px) {
-  main { margin: 0.75rem; padding: 1.25rem; border-radius: 0.9rem; }
+  main {
+    margin: 0.75rem;
+    padding: 1.25rem;
+    border-radius: 0.9rem;
+  }
 }
